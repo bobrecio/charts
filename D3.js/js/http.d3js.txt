@@ -1,0 +1,16 @@
+// https://d3js.org v5.15.0 Copyright 2019 Mike Bostock
+var xhtml = "http://www.w3.org/1999/xhtml";
+  svg: "http://www.w3.org/2000/svg",
+  xlink: "http://www.w3.org/1999/xlink",
+  xml: "http://www.w3.org/XML/1998/namespace",
+  xmlns: "http://www.w3.org/2000/xmlns/"
+// https://observablehq.com/@mbostock/lab-and-rgb
+  if (!svgNode) svgNode = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  // Based on https://github.com/mbostock/shapefile/blob/v0.6.2/shp/polygon.js
+  // Based on https://github.com/topojson/topojson-client/blob/v3.0.0/src/stitch.js
+// https://github.com/d3/d3-dsv/issues/45
+// http://geographiclib.sourceforge.net/
+// http://egsc.usgs.gov/isb/pubs/MapProjections/projections.html#albers
+// http://mathworld.wolfram.com/Circle-LineIntersection.html
+// According to https://en.wikipedia.org/wiki/Cubic_Hermite_spline#Representations
+// See https://www.particleincell.com/2012/bezier-splines/ for derivation.
