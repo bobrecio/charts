@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="//ajax.aspnetcdn.com/ajax/4.0/1/MicrosoftAjax.js" type="text/javascript">
+    </script>
+    <script type="text/javascript" src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.2.min.js">
+    </script>
+    <script type="text/javascript">
+        var hostweburl;
+
+        // Load the required SharePoint libraries.
+        $(document).ready(function () {
+
+            // Get the URI decoded URLs.
+            hostweburl =
+                decodeURIComponent(
+                    getQueryStringParameter("SPHostUrl")
+                );
+
+            // The js files are in a URL in the form:
+            // web_url/_layouts/15/resource_file
+            var scriptbase = hostweburl + "/_layouts/15/";
+
+            // Load the js files and continue to
+            // the execOperation function.
+            $.getScript(scriptbase + "SP.Runtime.js",
+                function () {
+                    $.getScript(scriptbase + "SP.js", execOperation);
+                }
+            );
+        });
+
+        // Function to execute basic operations.
+        function execOperation() {
+
+            // Continue your program flow here.
+
+        }
+
+        // Function to retrieve a query string value.
+        // For production purposes you may want to use
+        // a library to handle the query string.
+        function getQueryStringParameter(paramToRetrieve) {
+            var params =
+                document.URL.split("?")[1].split("&amp;");
+            var strParams = "";
+            for (var i = 0; i < params.length; i = i + 1) {
+                var singleParam = params[i].split("=");
+                if (singleParam[0] == paramToRetrieve)
+                    return singleParam[1];
+            }
+        }
+        // SP Website Tasks ---------------
+        function retrieveWebSite(siteUrl) {
+            var clientContext = new SP.ClientContext(siteUrl);
+            this.oWebsite = clientContext.get_web();
+
+            clientContext.load(this.oWebsite);
+
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.onQuerySucceeded),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function onQuerySucceeded(sender, args) {
+            alert('Title: ' + this.oWebsite.get_title() +
+                ' Description: ' + this.oWebsite.get_description());
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+
+        // Retrieve only selected properties of a website ---------------
+        function retrieveWebSiteProperties(siteUrl) {
+            var clientContext = new SP.ClientContext(siteUrl);
+            this.oWebsite = clientContext.get_web();
+
+            clientContext.load(this.oWebsite, 'Title', 'Created');
+
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.onQuerySucceeded),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function onQuerySucceeded(sender, args) {
+            alert('Title: ' + this.oWebsite.get_title() +
+                ' Created: ' + this.oWebsite.get_created());
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+        // Write to a website's properties ---------------
+        function updateWebSite(siteUrl) {
+            var clientContext = new SP.ClientContext(siteUrl);
+            this.oWebsite = clientContext.get_web();
+
+            this.oWebsite.set_title('Updated Web Site');
+            this.oWebsite.set_description('This is an updated website.');
+            this.oWebsite.update();
+
+            clientContext.load(this.oWebsite, 'Title', 'Description');
+
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.onQuerySucceeded),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function onQuerySucceeded(sender, args) {
+            alert('Title: ' + this.oWebsite.get_title() +
+                ' Description: ' + this.oWebsite.get_description());
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+
+        // SharePoint list tasks
+        //Retrieve all properties of all lists in a website ---------------
+        function retrieveAllListProperties(siteUrl) {
+            var clientContext = new SP.ClientContext(siteUrl);
+            var oWebsite = clientContext.get_web();
+            this.collList = oWebsite.get_lists();
+            clientContext.load(collList);
+
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.onQuerySucceeded),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function onQuerySucceeded() {
+            var listInfo = '';
+            var listEnumerator = collList.getEnumerator();
+
+            while (listEnumerator.moveNext()) {
+                var oList = listEnumerator.get_current();
+                listInfo += 'Title: ' + oList.get_title() + ' Created: ' +
+                    oList.get_created().toString() + '\n';
+            }
+            alert(listInfo);
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+        // Retrieve only specified properties of lists ---------------
+        function retrieveSpecificListProperties(siteUrl) {
+            var clientContext = new SP.ClientContext(siteUrl);
+            var oWebsite = clientContext.get_web();
+            this.collList = oWebsite.get_lists();
+
+            clientContext.load(collList, 'Include(Title, Id)');
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.onQuerySucceeded),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function onQuerySucceeded() {
+            var listInfo = '';
+            var listEnumerator = collList.getEnumerator();
+
+            while (listEnumerator.moveNext()) {
+                var oList = listEnumerator.get_current();
+                listInfo += 'Title: ' + oList.get_title() +
+                    ' ID: ' + oList.get_id().toString() + '\n';
+            }
+            alert(listInfo);
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+
+        //Store retrieved lists in a collection ---------------
+        function retrieveSpecificListPropertiesToCollection(siteUrl) {
+            var clientContext = new SP.ClientContext(siteUrl);
+            var oWebsite = clientContext.get_web();
+            var collList = oWebsite.get_lists();
+
+            this.listInfoCollection = clientContext.loadQuery(collList, 'Include(Title, Id)');
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.onQuerySucceeded),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function onQuerySucceeded() {
+            var listInfo = '';
+
+            for (var i = 0; i < this.listInfoCollection.length; i++) {
+                var oList = this.listInfoCollection[i];
+                listInfo += 'Title: ' + oList.get_title() +
+                    ' ID: ' + oList.get_id().toString();
+            }
+            alert(listInfo.toString());
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+
+        //Apply filters to list retrieval ---------------
+        function retrieveAllListsAllFields(siteUrl) {
+            var clientContext = new SP.ClientContext(siteUrl);
+            var oWebsite = clientContext.get_web();
+            var collList = oWebsite.get_lists();
+
+            this.listInfoArray = clientContext.loadQuery(collList,
+                'Include(Title,Fields.Include(Title,InternalName))');
+
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.onQuerySucceeded),
+                Function.createDelegate(this, this._onQueryFailed)
+            );
+        }
+
+        function onQuerySucceeded() {
+            var listInfo = '';
+
+            for (var i = 0; i < this.listInfoArray.length; i++) {
+                var oList = this.listInfoArray[i];
+                var collField = oList.get_fields();
+                var fieldEnumerator = collField.getEnumerator();
+
+                while (fieldEnumerator.moveNext()) {
+                    var oField = fieldEnumerator.get_current();
+                    var regEx = new RegExp('name', 'ig');
+
+                    if (regEx.test(oField.get_internalName())) {
+                        listInfo += '\nList: ' + oList.get_title() +
+                            '\n\tField Title: ' + oField.get_title() +
+                            '\n\tField Name: ' + oField.get_internalName();
+                    }
+                }
+            }
+            alert(listInfo);
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+
+        // Create, update, and delete lists
+        //Create and update a list ---------------
+        function createList(siteUrl) {
+            var clientContext = new SP.ClientContext(siteUrl);
+            var oWebsite = clientContext.get_web();
+
+            var listCreationInfo = new SP.ListCreationInformation();
+            listCreationInfo.set_title('My Announcements List');
+            listCreationInfo.set_templateType(SP.ListTemplateType.announcements);
+
+            this.oList = oWebsite.get_lists().add(listCreationInfo);
+
+            clientContext.load(oList);
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.onQuerySucceeded),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function onQuerySucceeded() {
+            var result = oList.get_title() + ' created.';
+            alert(result);
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+
+        // Update existing list ---------------
+        function createList(siteUrl) {
+            var clientContext = new SP.ClientContext(siteUrl);
+            var oWebsite = clientContext.get_web();
+
+            var listCreationInfo = new SP.ListCreationInformation();
+            listCreationInfo.set_title('My Announcements List');
+            listCreationInfo.set_templateType(SP.ListTemplateType.announcements);
+
+            this.oList = oWebsite.get_lists().add(listCreationInfo);
+
+            oList.set_description('New Announcements List');
+            oList.update();
+
+            clientContext.load(oList);
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.onQuerySucceeded),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function onQuerySucceeded() {
+            var result = oList.get_title() + ' updated.';
+            alert(result);
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+
+        // Add a field to a list ---------------
+        function addFieldToList(siteUrl) {
+            var clientContext = new SP.ClientContext(siteUrl);
+
+            var oList = clientContext.get_web().get_lists().getByTitle('Announcements');
+            this.oField = oList.get_fields().addFieldAsXml(
+                '<Field DisplayName=\'MyField\' Type=\'Number\' />',
+                true,
+                SP.AddFieldOptions.defaultValue
+            );
+
+            var fieldNumber = clientContext.castTo(oField, SP.FieldNumber);
+            fieldNumber.set_maximumValue(100);
+            fieldNumber.set_minimumValue(35);
+            fieldNumber.update();
+
+            clientContext.load(oField);
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.onQuerySucceeded),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function onQuerySucceeded() {
+            var result = oField.get_title() + ' added.';
+            alert(result);
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+
+        // Delete a list
+        function deleteList(siteUrl) {
+            var clientContext = new SP.ClientContext(siteUrl);
+            var oWebsite = clientContext.get_web();
+            this.listTitle = 'My Announcements List';
+
+            this.oList = oWebsite.get_lists().getByTitle(listTitle);
+            oList.deleteObject();
+
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.onQuerySucceeded),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function onQuerySucceeded() {
+            var result = listTitle + ' deleted.';
+            alert(result);
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+
+        // Create a folder in a doc library
+        function createFolder(resultpanel) {
+            var clientContext;
+            var oWebsite;
+            var oList;
+            var itemCreateInfo;
+
+            clientContext = new SP.ClientContext.get_current();
+            oWebsite = clientContext.get_web();
+            oList = oWebsite.get_lists().getByTitle("Shared Documents");
+
+            itemCreateInfo = new SP.ListItemCreationInformation();
+            itemCreateInfo.set_underlyingObjectType(SP.FileSystemObjectType.folder);
+            itemCreateInfo.set_leafName("My new folder!");
+            this.oListItem = oList.addItem(itemCreateInfo);
+            this.oListItem.set_item("Title", "My new folder!");
+            this.oListItem.update();
+
+            clientContext.load(this.oListItem);
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, successHandler),
+                Function.createDelegate(this, errorHandler)
+            );
+
+            function successHandler() {
+                resultpanel.innerHTML = "Go to the " +
+                    "<a href='../Lists/Shared Documents'>document library</a> " +
+                    "to see your new folder.";
+            }
+
+            function errorHandler() {
+                resultpanel.innerHTML =
+                    "Request failed: " + arguments[1].get_message();
+            }
+        }
+
+        // Update a folder in a document library
+        function updateFolder(resultpanel) {
+            var clientContext;
+            var oWebsite;
+            var oList;
+
+            clientContext = new SP.ClientContext.get_current();
+            oWebsite = clientContext.get_web();
+            oList = oWebsite.get_lists().getByTitle("Shared Documents");
+
+            this.oListItem = oList.getItemById(1);
+            this.oListItem.set_item("FileLeafRef", "My updated folder");
+            this.oListItem.update();
+
+            clientContext.load(this.oListItem);
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, successHandler),
+                Function.createDelegate(this, errorHandler)
+            );
+
+            function successHandler() {
+                resultpanel.innerHTML = "Go to the " +
+                    "<a href='../Lists/Shared Documents'>document library</a> " +
+                    "to see your updated folder.";
+            }
+
+            function errorHandler() {
+                resultpanel.innerHTML = "Request failed: " + arguments[1].get_message();
+            }
+        }
+        // Update a folder in a doc library
+        function updateFolder(resultpanel) {
+            var clientContext;
+            var oWebsite;
+            var oList;
+
+            clientContext = new SP.ClientContext.get_current();
+            oWebsite = clientContext.get_web();
+            oList = oWebsite.get_lists().getByTitle("Shared Documents");
+
+            this.oListItem = oList.getItemById(1);
+            this.oListItem.set_item("FileLeafRef", "My updated folder");
+            this.oListItem.update();
+
+            clientContext.load(this.oListItem);
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, successHandler),
+                Function.createDelegate(this, errorHandler)
+            );
+
+            function successHandler() {
+                resultpanel.innerHTML = "Go to the " +
+                    "<a href='../Lists/Shared Documents'>document library</a> " +
+                    "to see your updated folder.";
+            }
+
+            function errorHandler() {
+                resultpanel.innerHTML = "Request failed: " + arguments[1].get_message();
+            }
+        }
+        // Delete a folder in a document library
+        function deleteFolder(resultpanel) {
+            var clientContext;
+            var oWebsite;
+            var folderUrl;
+
+            clientContext = new SP.ClientContext.get_current();
+            oWebsite = clientContext.get_web();
+
+            clientContext.load(oWebsite);
+            clientContext.executeQueryAsync(function () {
+                folderUrl = oWebsite.get_serverRelativeUrl() + "/Lists/Shared Documents/Folder1";
+                this.folderToDelete = oWebsite.getFolderByServerRelativeUrl(folderUrl);
+                this.folderToDelete.deleteObject();
+
+                clientContext.executeQueryAsync(
+                    Function.createDelegate(this, successHandler),
+                    Function.createDelegate(this, errorHandler)
+                );
+            }, errorHandler);
+
+            function successHandler() {
+                resultpanel.innerHTML = "Go to the " +
+                    "<a href='../Lists/Shared Documents'>document library</a> " +
+                    "to make sure the folder is no longer there.";
+            }
+
+            function errorHandler() {
+                resultpanel.innerHTML = "Request failed: " + arguments[1].get_message();
+            }
+        }
+        // Create a file in a document library
+        function createFile(resultpanel) {
+            var clientContext;
+            var oWebsite;
+            var oList;
+            var fileCreateInfo;
+            var fileContent;
+
+            clientContext = new SP.ClientContext.get_current();
+            oWebsite = clientContext.get_web();
+            oList = oWebsite.get_lists().getByTitle("Shared Documents");
+
+            fileCreateInfo = new SP.FileCreationInformation();
+            fileCreateInfo.set_url("my new file.txt");
+            fileCreateInfo.set_content(new SP.Base64EncodedByteArray());
+            fileContent = "The content of my new file";
+
+            for (var i = 0; i < fileContent.length; i++) {
+
+                fileCreateInfo.get_content().append(fileContent.charCodeAt(i));
+            }
+
+            this.newFile = oList.get_rootFolder().get_files().add(fileCreateInfo);
+
+            clientContext.load(this.newFile);
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, successHandler),
+                Function.createDelegate(this, errorHandler)
+            );
+
+            function successHandler() {
+                resultpanel.innerHTML =
+                    "Go to the " +
+                    "<a href='../Lists/Shared Documents'>document library</a> " +
+                    "to see your new file.";
+            }
+
+            function errorHandler() {
+                resultpanel.innerHTML = "Request failed: " + arguments[1].get_message();
+            }
+        }
+        // Read a file in a document library
+        function readFile(resultpanel) {
+            var clientContext;
+            var oWebsite;
+            var fileUrl;
+
+            clientContext = new SP.ClientContext.get_current();
+            oWebsite = clientContext.get_web();
+
+            clientContext.load(oWebsite);
+            clientContext.executeQueryAsync(function () {
+                fileUrl = oWebsite.get_serverRelativeUrl() +
+                    "/Lists/Shared Documents/TextFile1.txt";
+                $.ajax({
+                        url: fileUrl,
+                        type: "GET"
+                    })
+                    .done(Function.createDelegate(this, successHandler))
+                    .error(Function.createDelegate(this, errorHandler));
+            }, errorHandler);
+
+            function successHandler(data) {
+                resultpanel.innerHTML =
+                    "The content of file \"TextFile1.txt\": " + data
+            }
+
+            function errorHandler() {
+                resultpanel.innerHTML =
+                    "Request failed: " + arguments[2];
+            }
+        }
+        // Update a file in a document library
+        function updateFile(resultpanel) {
+            var clientContext;
+            var oWebsite;
+            var oList;
+            var fileCreateInfo;
+            var fileContent;
+
+            clientContext = new SP.ClientContext.get_current();
+            oWebsite = clientContext.get_web();
+            oList = oWebsite.get_lists().getByTitle("Shared Documents");
+
+            fileCreateInfo = new SP.FileCreationInformation();
+            fileCreateInfo.set_url("TextFile1.txt");
+            fileCreateInfo.set_content(new SP.Base64EncodedByteArray());
+            fileCreateInfo.set_overwrite(true);
+            fileContent = "The updated content of my file";
+
+            for (var i = 0; i < fileContent.length; i++) {
+
+                fileCreateInfo.get_content().append(fileContent.charCodeAt(i));
+            }
+
+            this.existingFile = oList.get_rootFolder().get_files().add(fileCreateInfo);
+
+            clientContext.load(this.existingFile);
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, successHandler),
+                Function.createDelegate(this, errorHandler)
+            );
+
+            function successHandler() {
+                resultpanel.innerHTML =
+                    "Go to the " +
+                    "<a href='../Lists/Shared Documents'>document library</a> " +
+                    "to see the updated \"TextFile1.txt\" file.";
+            }
+
+            function errorHandler() {
+                resultpanel.innerHTML =
+                    "Request failed: " + arguments[1].get_message();
+            }
+        }
+        // Delete a file in a document library
+        function deleteFile(resultpanel) {
+            var clientContext;
+            var oWebsite;
+            var fileUrl;
+
+            clientContext = new SP.ClientContext.get_current();
+            oWebsite = clientContext.get_web();
+
+            clientContext.load(oWebsite);
+            clientContext.executeQueryAsync(function () {
+                fileUrl = oWebsite.get_serverRelativeUrl() +
+                    "/Lists/Shared Documents/TextFile1.txt";
+                this.fileToDelete = oWebsite.getFileByServerRelativeUrl(fileUrl);
+                this.fileToDelete.deleteObject();
+
+                clientContext.executeQueryAsync(
+                    Function.createDelegate(this, successHandler),
+                    Function.createDelegate(this, errorHandler)
+                );
+            }, errorHandler);
+
+            function successHandler() {
+                resultpanel.innerHTML =
+                    "Go to the " +
+                    "<a href='../Lists/Shared Documents'>document library</a> " +
+                    "to confirm that the \"TextFile1.txt\" file has been deleted.";
+            }
+
+            function errorHandler() {
+                resultpanel.innerHTML = "Request failed: " + arguments[1].get_message();
+            }
+        }
+        // Retrieve items from a list
+        function retrieveListItems(siteUrl) {
+            var clientContext = new SP.ClientContext(siteUrl);
+            var oList = clientContext.get_web().get_lists().getByTitle('Announcements');
+
+            var camlQuery = new SP.CamlQuery();
+            camlQuery.set_viewXml(
+                '<View><Query><Where><Geq><FieldRef Name=\'ID\'/>' +
+                '<Value Type=\'Number\'>1</Value></Geq></Where></Query>' +
+                '<RowLimit>10</RowLimit></View>'
+            );
+            this.collListItem = oList.getItems(camlQuery);
+
+            clientContext.load(collListItem);
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.onQuerySucceeded),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function onQuerySucceeded(sender, args) {
+            var listItemInfo = '';
+            var listItemEnumerator = collListItem.getEnumerator();
+
+            while (listItemEnumerator.moveNext()) {
+                var oListItem = listItemEnumerator.get_current();
+                listItemInfo += '\nID: ' + oListItem.get_id() +
+                    '\nTitle: ' + oListItem.get_item('Title') +
+                    '\nBody: ' + oListItem.get_item('Body');
+            }
+
+            alert(listItemInfo.toString());
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+
+        // Use the Include method to access properties of ListItem objects
+        function retrieveListItemsInclude(siteUrl) {
+            var clientContext = new SP.ClientContext(siteUrl);
+            var oList = clientContext.get_web().get_lists().getByTitle('Announcements');
+
+            var camlQuery = new SP.CamlQuery();
+            camlQuery.set_viewXml('<View><RowLimit>100</RowLimit></View>');
+            this.collListItem = oList.getItems(camlQuery);
+
+            clientContext.load(
+                collListItem,
+                'Include(Id, DisplayName, HasUniqueRoleAssignments)'
+            );
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.onQuerySucceeded),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function onQuerySucceeded(sender, args) {
+            var listItemInfo = '';
+            var listItemEnumerator = collListItem.getEnumerator();
+
+            while (listItemEnumerator.moveNext()) {
+                var oListItem = listItemEnumerator.get_current();
+                listItemInfo += '\nID: ' + oListItem.get_id() +
+                    '\nDisplay name: ' + oListItem.get_displayName() +
+                    '\nUnique role assignments: ' +
+                    oListItem.get_hasUniqueRoleAssignments();
+            }
+
+            alert(listItemInfo.toString());
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+
+        // Create a list item
+        function createListItem(siteUrl) {
+            var clientContext = new SP.ClientContext(siteUrl);
+            var oList = clientContext.get_web().get_lists().getByTitle('Announcements');
+
+            var itemCreateInfo = new SP.ListItemCreationInformation();
+            this.oListItem = oList.addItem(itemCreateInfo);
+            oListItem.set_item('Title', 'My New Item!');
+            oListItem.set_item('Body', 'Hello World!');
+            oListItem.update();
+
+            clientContext.load(oListItem);
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.onQuerySucceeded),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function onQuerySucceeded() {
+            alert('Item created: ' + oListItem.get_id());
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+        // Update a list item
+        function updateListItem(siteUrl) {
+            var clientContext = new SP.ClientContext(siteUrl);
+            var oList = clientContext.get_web().get_lists().getByTitle('Announcements');
+
+            this.oListItem = oList.getItemById(3);
+            oListItem.set_item('Title', 'My Updated Title');
+            oListItem.update();
+
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.onQuerySucceeded),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function onQuerySucceeded() {
+            alert('Item updated!');
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+        // Delete a list item
+        function deleteListItem(siteUrl) {
+            this.itemId = 2;
+            var clientContext = new SP.ClientContext(siteUrl);
+            var oList = clientContext.get_web().get_lists().getByTitle('Announcements');
+            this.oListItem = oList.getItemById(itemId);
+            oListItem.deleteObject();
+
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.onQuerySucceeded),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function onQuerySucceeded() {
+            alert('Item deleted: ' + itemId);
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+        // Delete and display remaining count
+        function deleteListItemDisplayCount(siteUrl) {
+            this.clientContext = new SP.ClientContext(siteUrl);
+            this.oList = clientContext.get_web().get_lists().getByTitle('Announcements');
+            clientContext.load(oList);
+
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.deleteItem),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function deleteItem() {
+            this.itemId = 58;
+            this.startCount = oList.get_itemCount();
+            this.oListItem = oList.getItemById(itemId);
+            oListItem.deleteObject();
+
+            oList.update();
+            clientContext.load(oList);
+
+            clientContext.executeQueryAsync(
+                Function.createDelegate(this, this.displayCount),
+                Function.createDelegate(this, this.onQueryFailed)
+            );
+        }
+
+        function displayCount() {
+            var endCount = oList.get_itemCount();
+            var listItemInfo = 'Item deleted: ' + itemId +
+                '\nStart Count: ' + startCount +
+                ' End Count: ' + endCount;
+
+            alert(listItemInfo)
+        }
+
+        function onQueryFailed(sender, args) {
+            alert('Request failed. ' + args.get_message() +
+                '\n' + args.get_stackTrace());
+        }
+        // Access objects in the Host Web
+        function execCrossDomainRequest(appweburl, hostweburl) {
+            // context: The ClientContext object provides access to
+            //      the web and lists objects.
+            // factory: Initialize the factory object with the
+            //      add-in web URL.
+            var context;
+            var factory;
+            var appContextSite;
+
+            context = new SP.ClientContext(appweburl);
+            factory = new SP.ProxyWebRequestExecutorFactory(appweburl);
+            context.set_webRequestExecutorFactory(factory);
+            appContextSite = new SP.AppContextSite(context, hostweburl);
+
+            this.web = appContextSite.get_web();
+            context.load(this.web);
+
+            // Execute the query with all the previous 
+            //  options and parameters.
+            context.executeQueryAsync(
+                Function.createDelegate(this, successHandler),
+                Function.createDelegate(this, errorHandler)
+            );
+
+            // Function to handle the success event.
+            // Prints the host web's title to the page.
+            function successHandler() {
+                alert(this.web.get_title());
+            }
+
+            // Function to handle the error event.
+            // Prints the error message to the page.
+            function errorHandler(data, errorCode, errorMessage) {
+                alert("Could not complete cross-domain call: " + errorMessage);
+            }
+        }
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>
