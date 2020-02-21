@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Chart JS Demo</title>
+    <script type="text/javascript" src="/sites/10041/recio/SiteAssets/Charts.js/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/sites/10041/recio/SiteAssets/Charts.js/js/Chart.min.js"></script>
+    <link rel="stylesheet" href="/sites/10041/recio/SiteAssets/Charts.js/css/bootstrap.min.css" />
+    <script>
+        var listName = "DummyData"; // name of the list
+        var groupbyField = "DEPT"; // field name that we are grouping by
+        var countField = "Title"; //field name of what we are counting
+        var allUniqueGroups = [];
+        var allItemCount = [];
+
+        function RunChart() {
+            var groups = [];
+            var itemsPerGroup = [];
+            groups = getAllGroups();
+            itemsPerGroup = getItemsPerGroup(groups);
+            var ctx = document.getElementById('myChartContainer').getContext('2d');
+            //ctx.clearRect(0, 0);
+            var chartType = document.getElementById('chartType').value;
+            var myChart = new Chart(ctx, {
+                type: chartType, // bar, horizontalBar, pie , line, doughnut, radar, polarArea
+                data: {
+                    labels: groups,
+                    datasets: [{
+                        label: 'Items by Group',
+                        data: itemsPerGroup,
+                        backgroundColor: ['yellow', 'green', 'red', 'purple', 'black', 'orange', 'lime',
+                            '#663300', '#003300', '#3366cc', '#666699', '#9900ff', '#cc0000',
+                            '#ff9900', '#99cc00', '#00ccff', '#cc66ff', '#cccc00', '#993366',
+                            '#800000', '#999966', '#ccffff', '#ffccff', '#ffcc99', '#ffff99',
+                            '#009933', '#00ff99', '#0099cc', '#993333', '#00cc66'
+                        ],
+                        // Need more colors?... https://www.w3schools.com/colors/colors_picker.asp
+                        borderWidth: 1,
+                        borderColor: 'black',
+                        hoverBorderWidth: 3,
+                        hoverBorderColor: 'black',
+                    }]
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: 'Items by ' + groupbyField,
+                        fontSize: 20
+                    },
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    }
+                }
+            });
+        }
+
+        function getAllGroups() {
+            var myURL = _spPageContextInfo.webAbsoluteUrl +
+                "/_api/web/lists/GetByTitle('" + listName +
+                "')/Items?$top=5000&$select=" + groupbyField;
+            var allData = [];
+
+            $.ajax({
+                url: myURL,
+                async: false,
+                method: "GET",
+                headers: {
+                    "Accept": "application/json; odata=verbose"
+                },
+                success: function (data) {
+                    if (data.d.results.length > 0) {
+                        // alert("success");
+                        allData = data.d.results;
+                        //console.log(allData);
+                        var thisField = "";
+                        for (var i = 0; i < Number(allData.length); i++) {
+
+                            thisField = allData[i][groupbyField];
+
+                            //console.log(thisField);
+
+                            allUniqueGroups.push(thisField);
+                        }
+                        //console.log(allUniqueGroups);
+                        allUniqueGroups = removeDuplicates(allUniqueGroups);
+                    }
+                },
+                error: function (error) {
+                    alert("Error: " + JSON.stringify(error));
+                }
+            });
+            return allUniqueGroups;
+        }
+
+        function getItemsPerGroup(groupArray) {
+            var searchText;
+            for (var i = 0; i < groupArray.length; i++) {
+                searchText = groupArray[i];
+                var _count = getGroupCount(searchText);
+                allItemCount.push(_count);
+                //console.log("For " + searchText + ", count is: " + _count);
+            }
+            return allItemCount;
+        }
+
+        function getGroupCount(searchItem) {
+            var myURL = _spPageContextInfo.webAbsoluteUrl +
+                "/_api/web/lists/GetByTitle('" + listName + "')/Items?$top=5000&$select=Title&$filter=" + groupbyField +
+                " eq '" + searchItem +
+                "'";
+            var myItemCount = 0;
+            $.ajax({
+                url: myURL,
+                method: "GET",
+                async: false,
+                headers: {
+                    "Accept": "application/json; odata=verbose"
+                },
+                success: function (myData1) {
+                    if (myData1.d.results.length > 0) {
+                        myItemCount = myData1.d.results.length;
+                    }
+                },
+                error: function (error) {
+                    alert("Error: " + JSON.stringify(error));
+                }
+            });
+            return myItemCount;
+        }
+
+        function removeDuplicates(arr) {
+            var unique_array = [];
+            // console.log(arr);
+            for (var i = 0; i < arr.length; i++) {
+
+                //console.log(unique_array.indexOf(arr[i]));
+
+                if (unique_array.indexOf(arr[i]) == -1) {
+                    unique_array.push(arr[i])
+                }
+            }
+            return unique_array
+        }
+    </script>
+</head>
+
+<body>
+    <br><br>
+    Chart Type:
+    <select id='chartType'>
+        <option value="bar">bar</option>
+        <option value="horizontalBar">horizontalBar</option>
+        <option value="pie">pie</option>
+        <option value="line">line</option>
+        <option value="doughnut">doughnut</option>
+        <option value="radar">radar</option>
+        <option value="polarArea">polarArea</option>
+    </select>
+
+    <button onclick="RunChart(); return false;">Generate Chart</button> <br><br>
+    <div style="position: relative;">
+        <canvas id="myChartContainer" style="border:1px solid"></canvas>
+    </div>
+</body>
+
+</html>

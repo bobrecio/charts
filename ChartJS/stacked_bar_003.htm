@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/Chart.js"></script>
+</head>
+
+<body>
+    <canvas id="bar-chart-grouped" width="800" height="450"></canvas>
+    <script>
+        new Chart(document.getElementById("bar-chart-grouped"), {
+            type: 'bar', // bar, horizontalBar, pie , line, doughnut, radar, polarArea
+            data: {
+                labels: ["1900", "1950", "1999", "2050"],
+                datasets: [
+                // lines
+                    {
+                    label: "Africa",
+                    type: "line",
+                    borderColor: "green",
+                    data: [133, 221, 783, 2478],
+                    fill: false
+                }, {
+                    label: "Europe",
+                    type: "line",
+                    borderColor: "red",
+                    data: [408, 547, 675, 734],
+                    fill: false
+                }, 
+                // bars
+                {
+                    label: "Africa",
+                    type: 'bar',
+                    backgroundColor: "#3e95cd",
+                    data: [133, 221, 783, 2478]
+                }, {
+                    label: "Europe",
+                    backgroundColor: "#8e5ea2",
+                    data: [408, 547, 675, 734]
+                }]
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: 'Population growth (millions)'
+                },
+                scales: {
+                    xAxes: [{
+                        stacked: false //true, false
+                    }],
+                    yAxes: [{
+                        stacked: false
+                    }]
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>My Stacked Bar Chart</title>
+    <script src="./js/Chart.min.js"></script>
+</head>
+
+<body>
+    <fieldset>
+        <legend>My Stacked Bar Chart</legend>
+        <canvas id="chart"></canvas>
+    </fieldset>
+    <script>
+        var ctx = document.getElementById("chart");
+
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Risk Level'],
+                datasets: [{
+                        label: 'Low',
+                        data: [25],
+                        backgroundColor: '#D6E9C6',
+                    },
+                    {
+                        label: 'Moderate',
+                        data: [10],
+                        backgroundColor: '#FAEBCC',
+                    },
+                    {
+                        label: 'High',
+                        data: [15],
+                        backgroundColor: '#EBCCD1',
+                    }
+
+                ]
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        stacked: true
+                    }],
+                    yAxes: [{
+                        stacked: true
+                    }]
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

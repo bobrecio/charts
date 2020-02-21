@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Chart JS Demo</title>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/Chart.js"></script>
+    <link rel="stylesheet" href="js/bootstrap.min.css" />
+    <script>
+        function GenerateChart() {
+
+            var filterVal = document.getElementById("riverLen").value;
+
+            var allData = [6650, 6400, 6300, 6275, 5539];
+
+            var myData = allData.filter(function(thisVal){return thisVal >= filterVal});
+
+            var allLabels = ['Nile', 'Amazon', 'Yangtze', 'Mississippi', 'Yenisei'];
+            
+            var ctx = document.getElementById('myChartContainer').getContext('2d');
+            
+            var myChart = new Chart(ctx, {
+                type: 'bar', // bar, horizontalBar, pie , line, doughnut, radar, polarArea
+                data: {
+                    labels: allLabels,
+                    datasets: [{
+                        label: 'Length of River',
+                        data: myData,
+                        backgroundColor: ['green', 'red', 'blue', 'purple', 'black'],
+                        borderWidth: 1,
+                        borderColor: 'black',
+                        hoverBorderWidth: 3,
+                        hoverBorderColor: 'black',
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: true,
+                    title: {
+                        display: true,
+                        text: 'Top ' + myData.length + ' rivers of the world!',
+                        fontSize: 20
+                    },
+                    legend: {
+                        display: true,
+                        position: 'right',
+                        labels: {
+                            fontColor: '#000',
+                        }
+                    },
+                    tooltips: {
+                        enabled: true
+                    }
+                }
+            });
+        };
+    </script>
+</head>
+
+<body>
+    <label>"Parameter: Greater than..."</label>
+    <select id="riverLen">
+        <option value="0">0</option>
+        <option value="5000">5000</option>
+        <option value="6000">6000</option>
+        <option value="6500">6500</option>
+    </select>
+    <br><br>
+    This space is reserved for my Chart JS graphs! <br><br>
+
+    <button onclick="GenerateChart()">Generate Chart</button><br><br>
+
+    <div style="position: relative; height:800px; width:800px">
+        <canvas id="myChartContainer" style="border:1px solid"></canvas>
+    </div>
+</body>
+
+</html>
